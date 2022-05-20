@@ -1,4 +1,4 @@
-package strk
+package Strucks
 
 import "time"
 

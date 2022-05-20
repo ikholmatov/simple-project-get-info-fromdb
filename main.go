@@ -4,11 +4,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/project1/Strucks"
+	ss "project1/Strucks"
 )
 
 func main(){
-	fmt.Print("ehe")
-	asd := strk.Type{11,"asdas"}
-	fmt.Println(asd)
+	person := ss.Customer{FirstName: "Davron",LastName: "Kholmatov",Username: "venom",Phones: }
+	nums := ss.[]ss.Phone{Numbers}
 }
