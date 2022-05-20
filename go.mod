@@ -1,4 +1,4 @@
-module project1
+module github.com/venomuz/project1
 
 go 1.18
 

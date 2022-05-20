@@ -1,10 +1,11 @@
 package main
 
 import (
-	ss "project1/Strucks"
+	m "github.com/venomuz/project1/metdohs"
+	ss "github.com/venomuz/project1/models"
 )
 
 func main() {
-	asd := ss.Customer{}
-
+	cust := ss.Customer{}
+	m.Insert("", cust)
 }
