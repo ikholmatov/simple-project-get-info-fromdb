@@ -3,18 +3,21 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/google/uuid"
+	"hash/fnv"
 	"log"
 	"time"
 )
 
-func (Customer) Insert(mybase string, UserDate Customer) (error, string) {
+func (Customer) Insert(mybase string, a Customer) (error, string) {
 	db, err := sql.Open("postgres", mybase)
 	if err != nil {
 		log.Panicf("%s\n%s", "Error While opening DB", err)
 	}
 	defer db.Close()
-
+	uuidCustomer := uuid.New()
 	QueryCustomers := `Insert into customers Values($1,$2,%3,%4,$5,$6,$7,$8,$9)`
+	db.Exec(QueryCustomers, uuidCustomer.String(), a.FirstName, a.LastName, a.UserName, a.Email, a.Gender, a.BirthDate, a.Password, a.Status)
 	return err, "ok"
 }
 func main() {
@@ -49,6 +52,17 @@ func main() {
 			Rating:      5,
 		},
 		},
+		Email:     "venom.uzz@mail.ru",
+		Gender:    "M",
+		BirthDate: time.Date(2002, time.May, 26, 00, 00, 00, 00, time.UTC),
+		Password: func() uint32 {
+				pass := "root12345"
+				h := fnv.New32a()
+				h.Write([]byte(pass))
+				return h.Sum32()
+			}(),
+		Status: true,
+		}
 	}
 	mybase := "user=kilogram password=112233 dbname=project1 sslmode=disable"
 
@@ -70,8 +84,8 @@ type Customer struct {
 	Email     string
 	Gender    string
 	BirthDate time.Time
-	Password  string // should be hashed and validate password should be 8 symbols
-	Status    string
+	Password  uint32 // should be hashed and validate password should be 8 symbols
+	Status    bool
 }
 
 type Phone struct {
