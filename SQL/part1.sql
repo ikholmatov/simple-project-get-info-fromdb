@@ -47,7 +47,7 @@ CREATE TABLE products(
 CREATE TABLE types(
     ID uuid NOT NULL ,
     ProductID uuid NOT NULL ,
-    Name TEXT NOT NULL,
+    Name TEXT [] NOT NULL,
     FOREIGN KEY(ProductID)
     REFERENCES products(ID)
     ON DELETE CASCADE
