@@ -1,17 +1,23 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
+	"log"
 	"time"
 )
 
-func main() {
+func (Customer) Insert(mybase string, UserDate Customer) (error, string) {
+	db, err := sql.Open("postgres", mybase)
+	if err != nil {
+		log.Panicf("%s\n%s", "Error While opening DB", err)
+	}
+	defer db.Close()
 
-	//mybase := "user=kilogram password=112233 dbname=kilogram sslmode=disable"
-	//_, err := sql.Open("postgres", mybase)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
+	QueryCustomers := `Insert into customers Values($1,$2,%3,%4,$5,$6,$7,$8,$9)`
+	return err, "ok"
+}
+func main() {
 	object := Customer{
 		FirstName: "Davron",
 		LastName:  "Kholmatov",
@@ -44,6 +50,13 @@ func main() {
 		},
 		},
 	}
+	mybase := "user=kilogram password=112233 dbname=project1 sslmode=disable"
+
+	err, s := object.Insert(mybase, object)
+	if err != nil {
+		log.Panicf("%s\n%s", "Error While useing Insert method DB", err)
+	}
+	fmt.Println(s)
 }
 
 type Customer struct {
