@@ -1,35 +1,54 @@
 CREATE TABLE customers(
-    Customer_ID uuid PRIMARY KEY,
+    CustomerID uuid PRIMARY KEY,
     FirstName VARCHAR(50) NOT NULL,
     LastName VARCHAR(50) NOT NULL,
     UserName VARCHAR(50) NOT NULL,
-    Email_id VARCHAR(50) NOT NULL,
+    Email VARCHAR(50) NOT NULL,
     Gender VARCHAR(50) NOT NULL,
-    Birthdate DATE NOT NULL,
-    Password VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE addresses(
-    Address_ID uuid NOT NULL,
-    Customer_ID uuid,
-    Country VARCHAR(50) NOT NULL,
-    City VARCHAR(50) NOT NULL,
-    FOREIGN KEY(Customer_ID)
-    REFERENCES customers(Customer_ID)
+    BirthDate DATE NOT NULL,
+    Password VARCHAR(50) NOT NULL,
+    Status BOOLEAN NOT NULL
 );
 
 CREATE TABLE phones(
-    Phone_ID uuid PRIMARY KEY,
-    Customer_ID uuid,
+    ID uuid PRIMARY KEY,
+    CustomerID uuid,
     Numbers INT [] NOT NULL,
     Code VARCHAR(30) NOT NULL,
-      FOREIGN KEY(Customer_ID)
-   REFERENCES customers(Customer_ID)
+    FOREIGN KEY(CustomerID)
+    REFERENCES customers(CustomerID)
+    ON DELETE CASCADE
+);
+CREATE TABLE addresses(
+    ID uuid NOT NULL PRIMARY KEY,
+    CustomerID uuid,
+    Country VARCHAR(50) NOT NULL,
+    City VARCHAR(50) NOT NULL,
+    District VARCHAR(50) NOT NULL ,
+    PostalCode INT [] NOT NULL,
+    FOREIGN KEY(CustomerID)
+    REFERENCES customers(CustomerID)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE products(
-    Product_ID uuid PRIMARY KEY,
+    ID uuid PRIMARY KEY,
+    CustomerID uuid,
     Name VARCHAR(50) NOT NULL,
+    Cost INT NOT NULL,
+    OrderNumber INT NOT NULL,
     Amount INT NOT NULL,
-    Rating INT
+    Currency VARCHAR(50) NOT NULL,
+    Rating INT NOT NULL,
+    FOREIGN KEY(CustomerID)
+    REFERENCES customers(CustomerID)
+    ON DELETE CASCADE
+);
+CREATE TABLE types(
+    ID uuid NOT NULL ,
+    ProductID uuid NOT NULL ,
+    Name TEXT NOT NULL,
+    FOREIGN KEY(ProductID)
+    REFERENCES products(ID)
+    ON DELETE CASCADE
 );
