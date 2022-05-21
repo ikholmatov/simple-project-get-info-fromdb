@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"hash/fnv"
 	"log"
 	"time"
+
 )
 
 func (Customer) Insert(mybase string, a Customer) (error, string) {
@@ -15,9 +17,33 @@ func (Customer) Insert(mybase string, a Customer) (error, string) {
 		log.Panicf("%s\n%s", "Error While opening DB", err)
 	}
 	defer db.Close()
+	tx, err := db.Begin()
+	if err != nil{
+		log.Panicf("%s\n%s", "Error While opening Transacion", err)
+	}
+
 	uuidCustomer := uuid.New()
 	QueryCustomers := `Insert into customers Values($1,$2,%3,%4,$5,$6,$7,$8,$9)`
-	db.Exec(QueryCustomers, uuidCustomer.String(), a.FirstName, a.LastName, a.UserName, a.Email, a.Gender, a.BirthDate, a.Password, a.Status)
+	_,err = tx.Exec(QueryCustomers, uuidCustomer.String(), a.FirstName, a.LastName, a.UserName, a.Email, a.Gender, a.BirthDate, a.Password, a.Status)
+	if err != nil{
+		tx.Rollback()
+		return
+	}
+	for _,v := range a.Phones{
+		uuidPhone := uuid.New()
+		QueryPhone := `Insert into phones values($1,$2,$3,$4)`
+		_,err := tx.Exec(QueryPhone,uuidPhone,uuidCustomer,pq.Array(v.Numbers),v.Code)
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	}
+
+
+
+
+
+
 	return err, "ok"
 }
 func main() {
@@ -27,6 +53,7 @@ func main() {
 		UserName:  "venomuz",
 		Phones: []Phone{
 			{Numbers: []int64{909331343, 977535979}, Code: "+990"},
+			{Numbers: []int64{123456755, 852852885}, Code: "+1"},
 		},
 		Addresses: []Address{{
 			Country:     "Uzbekistan",
