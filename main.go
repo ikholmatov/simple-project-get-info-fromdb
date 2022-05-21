@@ -38,6 +38,15 @@ func (Customer) Insert(mybase string, a Customer) (error, string) {
 			return
 		}
 	}
+	for _,v := range a.Addresses{
+		uuidAddres := uuid.New()
+		QueryAddress := "Insert into addresses values($1,$2,$3,$4,$5,$6)"
+		_,err := tx.Exec(QueryAddress,uuidAddres,uuidCustomer,v.Country,v.City,v.District,pq.Array(v.PostalCodes))
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	}
 
 
 
