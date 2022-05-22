@@ -16,7 +16,12 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While opening DB", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While closeing DB", err)
+		}
+	}(db)
 	tx, err := db.Begin()
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While opening Transacion", err)
@@ -26,7 +31,10 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 	QueryCustomers := `Insert into customers Values($1,$2,$3,$4,$5,$6,$7,$8,$9)`
 	_, err = tx.Exec(QueryCustomers, uuidCustomer.String(), a.FirstName, a.LastName, a.UserName, a.Email, a.Gender, a.BirthDate, a.Password, a.Status)
 	if err != nil {
-		tx.Rollback()
+		err := tx.Rollback()
+		if err != nil {
+			return err, ""
+		}
 		log.Panicf("%s \n %s", "Error While inserting colums to the customers", err)
 	}
 	for _, v := range a.Phones {
@@ -34,7 +42,10 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 		QueryPhone := `Insert into phones values($1,$2,$3,$4)`
 		_, err := tx.Exec(QueryPhone, uuidPhone, uuidCustomer, pq.Array(v.Numbers), v.Code)
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return err, ""
+			}
 			log.Panicf("%s \n %s", "Error While inserting colums to the Phones", err)
 		}
 	}
@@ -43,7 +54,10 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 		QueryAddress := "Insert into addresses values($1,$2,$3,$4,$5,$6)"
 		_, err := tx.Exec(QueryAddress, uuidAddress, uuidCustomer, v.Country, v.City, v.District, pq.Array(v.PostalCodes))
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return err, ""
+			}
 			log.Panicf("%s \n %s", "Error While inserting colums to the customers", err)
 		}
 	}
@@ -52,7 +66,10 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 		QueryProduct := "Insert into products values($1,$2,$3,$4,$5,$6,$7,$8)"
 		_, err := tx.Exec(QueryProduct, uuidProduct, uuidCustomer, v.Name, v.Cost, v.OrderNumber, v.Amount, v.Currency, v.Rating)
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return err, ""
+			}
 			log.Panicf("%s \n %s", "Error While inserting colums to the products", err)
 		}
 		uuidType := uuid.New()
@@ -61,7 +78,10 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 		asd = append(asd, v.Types[0].Name)
 		_, err = tx.Exec(QueryType, uuidType, uuidProduct, pq.Array(asd))
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return err, ""
+			}
 			log.Panicf("%s \n %s", "Error While inserting colums to the types", err)
 		}
 
@@ -95,6 +115,7 @@ func (Customer) Get(MyBase string, TarID string) {
 			log.Panicf("%s \n %s", "Error While Scaning colums from Customers", err)
 		}
 	}
+
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
@@ -157,7 +178,7 @@ func (Customer) Get(MyBase string, TarID string) {
 		}
 		for rows.Next() {
 			typ := Type{}
-			err = rows.Scan(&typ.ID, &prod.CustomerID, &typ.Name)
+			err = rows.Scan(&typ.ID, &typ.ProductID, &typ.Name)
 			if err != nil {
 				log.Panicf("%s \n %s", "Error While Scaning colums from types", err)
 			}
