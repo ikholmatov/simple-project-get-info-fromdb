@@ -164,6 +164,7 @@ func (Customer) Get(MyBase string, TarID string) {
 			types = append(types, typ)
 		}
 		prod.Types = types
+
 		prods = append(prods, prod)
 	}
 	cus.Phones = phon
