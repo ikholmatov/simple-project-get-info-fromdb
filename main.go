@@ -170,10 +170,6 @@ func (Customer) Get(MyBase string, TarID string) {
 	cus.Addresses = adr
 	cus.Products = prods
 
-	//f.Phones = append(f.Phones, num)
-	//f.Addresses = append(f.Addresses, adrs)
-	//prod.Types = append(prod.Types, typ)
-	//f.Products = append(f.Products, prod)
 	ans, err := json.MarshalIndent(cus, "", "   ")
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While Marshaling colums", err)
