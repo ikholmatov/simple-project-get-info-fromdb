@@ -73,78 +73,108 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 	return err, "ok"
 }
 func (Customer) Get(MyBase string, TarID string) {
-	var (
-		customer Customer
-		adress   []Address
-		product  []Product
-		types    []Type
-	)
 
 	db, err := sql.Open("postgres", MyBase)
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While opening DB", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+
+		}
+	}(db)
 	rows, err := db.Query(`Select * from Customers where CustomerID = $1 ;`, TarID)
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While get colums from Customers", err)
 	}
+	var cus Customer
 	for rows.Next() {
-		err = rows.Scan(&f.ID, &f.FirstName, &f.LastName, &f.UserName, &f.Email, &f.Gender, &f.BirthDate, &f.Password, &f.Status)
+		err = rows.Scan(&cus.ID, &cus.FirstName, &cus.LastName, &cus.UserName, &cus.Email, &cus.Gender, &cus.BirthDate, &cus.Password, &cus.Status)
 		if err != nil {
 			log.Panicf("%s \n %s", "Error While Scaning colums from Customers", err)
 		}
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		rows, err = db.Query(`Select * from Phones where CustomerID = $1 ;`, TarID)
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
 		if err != nil {
-			log.Panicf("%s \n %s", "Error While get colums from Phones", err)
+
 		}
-		err = rows.Scan(&num.ID, &num.CustomerID, &num.Numbers, &num.Code)
+	}(rows)
+
+	rows, err = db.Query(`Select * from Phones where CustomerID = $1 ;`, TarID)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While get colums from Phones", err)
+	}
+	var phon []Phone
+	for rows.Next() {
+		num := Phone{}
+		err = rows.Scan(&num.ID, &num.CustomerID, pq.Array(&num.Numbers), &num.Code)
 		if err != nil {
 			log.Panicf("%s \n %s", "Error While Scaning colums from Phones", err)
 		}
+		phon = append(phon, num)
 	}
 
+	rows, err = db.Query(`Select * from addresses where CustomerID = $1 ;`, TarID)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While get colums from addresses", err)
+	}
+
+	var adr []Address
 	for rows.Next() {
-		rows, err = db.Query(`Select * from addresses where CustomerID = $1 ;`, TarID)
-		if err != nil {
-			log.Panicf("%s \n %s", "Error While get colums from addresses", err)
-		}
-		err = rows.Scan(&adrs.ID, &adrs.CustomerID, &adrs.Country, &adrs.City, &adrs.District, &adrs.PostalCodes)
+		a := Address{}
+		err = rows.Scan(&a.ID, &a.CustomerID, &a.Country, &a.City, &a.District, pq.Array(&a.PostalCodes))
 		if err != nil {
 			log.Panicf("%s \n %s", "Error While Scaning colums from addresses", err)
 		}
+		adr = append(adr, a)
 	}
 
+	rows, err = db.Query(`Select * from products where CustomerID = $1 ;`, TarID)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While get colums from products", err)
+	}
+
+	ProdId := ""
+	row := db.QueryRow(`Select ID from products where CustomerID = $1 `, TarID)
+	err = row.Scan(&ProdId)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While geting ID colums from products", err)
+	}
+
+	var prods []Product
+	var types []Type
 	for rows.Next() {
-		rows, err = db.Query(`Select * from products where CustomerID = $1 ;`, TarID)
-		if err != nil {
-			log.Panicf("%s \n %s", "Error While get colums from products", err)
-		}
+		prod := Product{}
 		err = rows.Scan(&prod.ID, &prod.CustomerID, &prod.Name, &prod.Cost, &prod.OrderNumber, &prod.Amount, &prod.Currency, &prod.Rating)
 		if err != nil {
 			log.Panicf("%s \n %s", "Error While Scaning colums from products", err)
 		}
-	}
-
-	for rows.Next() {
-		rows, err = db.Query(`Select * from types where CustomerID = $1 ;`, TarID)
+		rows, err = db.Query(`Select * from types where ProductID = $1 ;`, ProdId)
 		if err != nil {
 			log.Panicf("%s \n %s", "Error While get colums from types", err)
 		}
-		err = rows.Scan(&typ.ID, &prod.CustomerID, &typ.Name, &typ.Name)
-		if err != nil {
-			log.Panicf("%s \n %s", "Error While Scaning colums from types", err)
+		for rows.Next() {
+			typ := Type{}
+			err = rows.Scan(&typ.ID, &prod.CustomerID, &typ.Name)
+			if err != nil {
+				log.Panicf("%s \n %s", "Error While Scaning colums from types", err)
+			}
+			types = append(types, typ)
 		}
+		prod.Types = types
+		prods = append(prods, prod)
 	}
+	cus.Phones = phon
+	cus.Addresses = adr
+	cus.Products = prods
+
 	//f.Phones = append(f.Phones, num)
 	//f.Addresses = append(f.Addresses, adrs)
 	//prod.Types = append(prod.Types, typ)
 	//f.Products = append(f.Products, prod)
-	ans, err := json.MarshalIndent(f, "", "   ")
+	ans, err := json.MarshalIndent(cus, "", "   ")
 	if err != nil {
 		log.Panicf("%s \n %s", "Error While Marshaling colums", err)
 	}
