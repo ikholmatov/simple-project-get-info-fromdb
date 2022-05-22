@@ -9,3 +9,6 @@
 4 Insert does insert object to the tables from db.
 
 5 Get does get object via uuid Customer from tables and print it like json format.
+
+## RESULT
+![img.png](img.png)
