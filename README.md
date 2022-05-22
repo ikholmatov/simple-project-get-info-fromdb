@@ -6,9 +6,9 @@
 
 3 I wrote 2 methods for Customer: Insert, Get.
 
-4 Insert does insert object to the tables from db.
+insert() - inserts objects to the tables from database
 
-5 Get does get object via uuid Customer from tables and print it like json format.
+get() - gets object via uuid Customer from tables and prints it in a JSON format
 
 ## RESULT
 ![img.png](img.png)
