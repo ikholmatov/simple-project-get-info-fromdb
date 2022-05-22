@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -71,6 +72,85 @@ func (Customer) Insert(MyBase string, a Customer) (error, string) {
 	}
 	return err, "ok"
 }
+func (Customer) Get(MyBase string, TarID string) {
+	var (
+		customer Customer
+		adress   []Address
+		product  []Product
+		types    []Type
+	)
+
+	db, err := sql.Open("postgres", MyBase)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While opening DB", err)
+	}
+	defer db.Close()
+	rows, err := db.Query(`Select * from Customers where CustomerID = $1 ;`, TarID)
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While get colums from Customers", err)
+	}
+	for rows.Next() {
+		err = rows.Scan(&f.ID, &f.FirstName, &f.LastName, &f.UserName, &f.Email, &f.Gender, &f.BirthDate, &f.Password, &f.Status)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While Scaning colums from Customers", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		rows, err = db.Query(`Select * from Phones where CustomerID = $1 ;`, TarID)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While get colums from Phones", err)
+		}
+		err = rows.Scan(&num.ID, &num.CustomerID, &num.Numbers, &num.Code)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While Scaning colums from Phones", err)
+		}
+	}
+
+	for rows.Next() {
+		rows, err = db.Query(`Select * from addresses where CustomerID = $1 ;`, TarID)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While get colums from addresses", err)
+		}
+		err = rows.Scan(&adrs.ID, &adrs.CustomerID, &adrs.Country, &adrs.City, &adrs.District, &adrs.PostalCodes)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While Scaning colums from addresses", err)
+		}
+	}
+
+	for rows.Next() {
+		rows, err = db.Query(`Select * from products where CustomerID = $1 ;`, TarID)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While get colums from products", err)
+		}
+		err = rows.Scan(&prod.ID, &prod.CustomerID, &prod.Name, &prod.Cost, &prod.OrderNumber, &prod.Amount, &prod.Currency, &prod.Rating)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While Scaning colums from products", err)
+		}
+	}
+
+	for rows.Next() {
+		rows, err = db.Query(`Select * from types where CustomerID = $1 ;`, TarID)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While get colums from types", err)
+		}
+		err = rows.Scan(&typ.ID, &prod.CustomerID, &typ.Name, &typ.Name)
+		if err != nil {
+			log.Panicf("%s \n %s", "Error While Scaning colums from types", err)
+		}
+	}
+	//f.Phones = append(f.Phones, num)
+	//f.Addresses = append(f.Addresses, adrs)
+	//prod.Types = append(prod.Types, typ)
+	//f.Products = append(f.Products, prod)
+	ans, err := json.MarshalIndent(f, "", "   ")
+	if err != nil {
+		log.Panicf("%s \n %s", "Error While Marshaling colums", err)
+	}
+	fmt.Println(string(ans))
+}
+
 func main() {
 	object := Customer{
 		FirstName: "Davron",
@@ -116,13 +196,7 @@ func main() {
 		Status: true,
 	}
 	mybase := "user=venom password=112233 dbname=project1 sslmode=disable"
-
-	err, s := object.Insert(mybase, object)
-	if err != nil {
-		log.Panicf("%s\n%s", "Error While useing Insert method DB", err)
-	}
-	fmt.Println(s)
-
+	object.Get(mybase, "74c739a6-372e-441e-8cb8-2fde9d01c574")
 }
 
 type Customer struct {
