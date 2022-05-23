@@ -238,7 +238,10 @@ func main() {
 		Password: func() uint32 {
 			pass := "root12345"
 			h := fnv.New32a()
-			h.Write([]byte(pass))
+			_, err := h.Write([]byte(pass))
+			if err != nil {
+				return 0
+			}
 			return h.Sum32()
 		}(),
 		Status: true,
